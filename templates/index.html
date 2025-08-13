@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fake News Detector</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(45deg, #2c3e50, #34495e);
+            color: white;
+            text-align: center;
+            padding: 30px 20px;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .nav {
+            background: #34495e;
+            padding: 15px 0;
+            text-align: center;
+        }
+
+        .nav a {
+            color: white;
+            text-decoration: none;
+            margin: 0 20px;
+            padding: 10px 20px;
+            border-radius: 25px;
+            transition: background-color 0.3s;
+        }
+
+        .nav a:hover {
+            background: rgba(255,255,255,0.2);
+        }
+
+        .nav a.active {
+            background: #3498db;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        textarea {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+            resize: vertical;
+            min-height: 150px;
+            font-family: inherit;
+            transition: border-color 0.3s;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+
+        .btn {
+            background: linear-gradient(45deg, #3498db, #2980b9);
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 25px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            display: inline-block;
+            text-decoration: none;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.4);
+        }
+
+        .result {
+            margin-top: 30px;
+            padding: 25px;
+            border-radius: 10px;
+            border-left: 5px solid;
+        }
+
+        .result.likely_real {
+            background: #d4edda;
+            border-color: #28a745;
+            color: #155724;
+        }
+
+        .result.suspicious {
+            background: #fff3cd;
+            border-color: #ffc107;
+            color: #856404;
+        }
+
+        .result.likely_fake {
+            background: #f8d7da;
+            border-color: #dc3545;
+            color: #721c24;
+        }
+
+        .result.insufficient_data {
+            background: #e2e3e5;
+            border-color: #6c757d;
+            color: #383d41;
+        }
+
+        .result h3 {
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+
+        .confidence-bar {
+            background: #e0e0e0;
+            height: 8px;
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+
+        .confidence-fill {
+            height: 100%;
+            transition: width 0.5s ease-in-out;
+        }
+
+        .confidence-fill.likely_real {
+            background: #28a745;
+        }
+
+        .confidence-fill.suspicious {
+            background: #ffc107;
+        }
+
+        .confidence-fill.likely_fake {
+            background: #dc3545;
+        }
+
+        .analyzed-text {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            border: 1px solid #dee2e6;
+        }
+
+        .alert {
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            font-weight: 500;
+        }
+
+        .alert.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .alert.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .footer {
+            background: #2c3e50;
+            color: white;
+            text-align: center;
+            padding: 20px;
+            font-size: 14px;
+        }
+
+        @media (max-width: 600px) {
+            .header h1 {
+                font-size: 2em;
+            }
+            
+            .content {
+                padding: 20px;
+            }
+            
+            .nav a {
+                margin: 0 10px;
+                padding: 8px 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>🔍 Fake News Detector</h1>
+            <p>Analyze news articles and headlines for potential misinformation</p>
+        </header>
+
+        <nav class="nav">
+            <a href="{{ url_for('index') }}" class="active">Home</a>
+            <a href="{{ url_for('contact') }}">Contact</a>
+        </nav>
+
+        <div class="content">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert {{ category }}">{{ message }}</div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <form method="POST" action="{{ url_for('analyze') }}">
+                <div class="form-group">
+                    <label for="news_text">Enter news text or headline to analyze:</label>
+                    <textarea 
+                        id="news_text" 
+                        name="news_text" 
+                        placeholder="Paste the news article, headline, or claim you want to analyze here..."
+                        required>{{ analyzed_text or '' }}</textarea>
+                </div>
+                
+                <button type="submit" class="btn">Analyze for Fake News</button>
+            </form>
+
+            {% if result %}
+            <div class="result {{ result.prediction }}">
+                <h3>
+                    {% if result.prediction == 'likely_real' %}
+                        ✅ Likely Real News
+                    {% elif result.prediction == 'suspicious' %}
+                        ⚠️ Suspicious Content
+                    {% elif result.prediction == 'likely_fake' %}
+                        ❌ Likely Fake News
+                    {% else %}
+                        ℹ️ Insufficient Data
+                    {% endif %}
+                </h3>
+                
+                {% if result.prediction != 'insufficient_data' %}
+                    <p><strong>Confidence Level:</strong> {{ result.confidence }}%</p>
+                    <div class="confidence-bar">
+                        <div class="confidence-fill {{ result.prediction }}" style="width: {{ result.confidence }}%"></div>
+                    </div>
+                {% endif %}
+                
+                <p>
+                    {% if result.prediction == 'likely_real' %}
+                        This content appears to be legitimate news. However, always verify information from multiple reliable sources.
+                    {% elif result.prediction == 'suspicious' %}
+                        This content contains some suspicious elements. Please fact-check with reliable sources before sharing.
+                    {% elif result.prediction == 'likely_fake' %}
+                        This content shows multiple indicators of potential misinformation. Please verify with trusted news sources.
+                    {% else %}
+                        Please provide more text for a better analysis.
+                    {% endif %}
+                </p>
+
+                {% if analyzed_text and result.prediction != 'insufficient_data' %}
+                <div class="analyzed-text">
+                    <strong>Analyzed Text:</strong><br>
+                    {{ analyzed_text[:200] }}{% if analyzed_text|length > 200 %}...{% endif %}
+                </div>
+                {% endif %}
+            </div>
+            {% endif %}
+
+            <div style="margin-top: 40px; padding: 20px; background: #f8f9fa; border-radius: 10px;">
+                <h3 style="color: #2c3e50; margin-bottom: 15px;">💡 Tips for Identifying Fake News:</h3>
+                <ul style="color: #555; line-height: 1.8;">
+                    <li>Check the source - Is it a reputable news organization?</li>
+                    <li>Look for author information and publication date</li>
+                    <li>Cross-reference with other reliable news sources</li>
+                    <li>Be wary of sensational headlines and emotional language</li>
+                    <li>Check for supporting evidence and credible quotes</li>
+                    <li>Verify images and videos aren't taken out of context</li>
+                </ul>
+            </div>
+        </div>
+
+        <footer class="footer">
+            <p>&copy; 2025 Fake News Detector. This tool provides preliminary analysis only. Always verify news from multiple reliable sources.</p>
+        </footer>
+    </div>
+</body>
+</html>
