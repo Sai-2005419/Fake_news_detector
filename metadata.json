@@ -1,0 +1,5 @@
+{
+  "name": "Veritas - AI Fake News Detector",
+  "description": "A sophisticated tool that uses Google Gemini 3 Pro and Search Grounding to analyze news articles for bias, factual accuracy, and credibility.",
+  "requestFramePermissions": []
+}
